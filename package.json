@@ -1,0 +1,20 @@
+{
+  "name": "chain11",
+  "version": "1.0.0",
+  "type": "module",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-ignition": "^3.0.7",
+    "@nomicfoundation/hardhat-toolbox-viem": "^5.0.2",
+    "@types/node": "^22.19.10",
+    "forge-std": "github:foundry-rs/forge-std#v1.9.4",
+    "hardhat": "^3.1.7",
+    "typescript": "~5.8.0",
+    "viem": "^2.45.2"
+  },
+  "dependencies": {
+    "@chainlink/contracts": "^1.5.0",
+    "@openzeppelin/contracts": "^5.4.0",
+    "chai": "^6.2.2",
+    "terser": "^5.46.0"
+  }
+}
