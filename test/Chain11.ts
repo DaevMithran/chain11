@@ -27,7 +27,7 @@ describe("Chain11", async function () {
     return { chain11, chain11Oracle, mockRouter }
   }
 
-async function initializeMatch(chain11Oracle: any, mockRouter: any, matchId: string) {
+  async function initializeMatch(chain11Oracle: any, mockRouter: any, matchId: string) {
     // Get request event
     const events = await publicClient.getContractEvents({
       address: chain11Oracle.address,
@@ -83,6 +83,28 @@ async function initializeMatch(chain11Oracle: any, mockRouter: any, matchId: str
     
     await publicClient.waitForTransactionReceipt({ hash });
     return playerIds;
+  }
+
+  function createValidTeam(playerIds: bigint[]) {    
+    const team = [
+      playerIds[0],  // batsman A
+      playerIds[1],  // batsman A
+      playerIds[2],  // batsman A
+      playerIds[6],  // bowler A
+      playerIds[7],  // bowler A
+      playerIds[8],  // bowler A
+      playerIds[12], // all-rounder A
+      playerIds[16], // wicket-keeper A
+      playerIds[22], // batsman B
+      playerIds[28], // bowler B
+      playerIds[34], // all-rounder B
+    ];
+    
+    return {
+      playerIds: team,
+      captainId: team[0],
+      viceCaptainId: team[1],
+    };
   }
 
   describe("Deployment", function() {
@@ -186,5 +208,40 @@ async function initializeMatch(chain11Oracle: any, mockRouter: any, matchId: str
       assert.equal(id, playerIds[0]);
     })
   });
+
+  describe("Team Submission", function() {
+    it("Should allow user to join with valid team", async function() {
+      const { chain11, chain11Oracle, mockRouter } = await deployPlatform()
+
+      const matchId = "match_ind_vs_aus_001";
+      const deadline = BigInt(Math.floor(Date.now() / 1000)) + 3600n;
+
+      await chain11.write.createContest(
+        [matchId, deadline, 100n],
+        { value: parseEther("0.01") }
+      );
+      
+      const playerIds = await initializeMatch(chain11Oracle, mockRouter, "match_ind_vs_aus_001");
+      const team = createValidTeam(playerIds);
+      
+      const blockNumber = await publicClient.getBlockNumber();
+      
+      const hash = await chain11.write.joinAndSubmitTeam(
+        [0n, team.playerIds, team.captainId, team.viceCaptainId],
+        { value: parseEther("0.01"), account: user1.account }
+      );
+      
+      await publicClient.waitForTransactionReceipt({ hash });
+      
+      const events = await publicClient.getContractEvents({
+        address: chain11.address,
+        abi: chain11.abi,
+        eventName: "UserJoinedAndSubmittedTeam",
+        fromBlock: blockNumber,
+      });
+      
+      assert.equal(events.length, 1);
+    })
+  })
 
 });
